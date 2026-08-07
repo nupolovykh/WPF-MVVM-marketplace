@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNet.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using MyWpfAppForDb.Domain.Exceptions;
 using MyWpfAppForDb.Domain.Services.AccountService;
 using MyWpfAppForDb.EntityFramework.Entities;
@@ -10,10 +10,10 @@ namespace MyWpfAppForDb.EntityFramework.Services.AuthenticationServices
 	public class AuthenticationService : IAuthenticationService
 	{
 		private readonly IAccountService _accountService;
-		private readonly IPasswordHasher _passwordHasher;
+		private readonly IPasswordHasher<Employee> _passwordHasher;
 
-		public AuthenticationService(IAccountService accountService, IPasswordHasher passwordHasher) 
-		{ 
+		public AuthenticationService(IAccountService accountService, IPasswordHasher<Employee> passwordHasher)
+		{
 			_accountService = accountService;
 			_passwordHasher = passwordHasher;
 		}
@@ -24,7 +24,7 @@ namespace MyWpfAppForDb.EntityFramework.Services.AuthenticationServices
 
 			if (employee is null) throw new UserNotFoundException(username);
 
-			PasswordVerificationResult passwordResult = _passwordHasher.VerifyHashedPassword(employee.Password, password);
+			PasswordVerificationResult passwordResult = _passwordHasher.VerifyHashedPassword(employee, employee.Password, password);
 
 			if (passwordResult != PasswordVerificationResult.Success) throw new InvalidPasswordException(username, password);
 
@@ -46,15 +46,14 @@ namespace MyWpfAppForDb.EntityFramework.Services.AuthenticationServices
 
 			if(result == AccountResult.Success)
 			{
-				string hashedPassword = _passwordHasher.HashPassword(password);
-
 				Employee newEmployee = new Employee()
 				{
 					RoleId = 2,
 					Email = email,
-					Name = username,
-					Password = hashedPassword
+					Name = username
 				};
+
+				newEmployee.Password = _passwordHasher.HashPassword(newEmployee, password);
 
 				await _accountService.Create(newEmployee);
 			}
@@ -76,7 +75,7 @@ namespace MyWpfAppForDb.EntityFramework.Services.AuthenticationServices
 
 			if (result == AccountResult.Success)
 			{
-				string hashedPassword = _passwordHasher.HashPassword(employee.Password);
+				string hashedPassword = _passwordHasher.HashPassword(employee, employee.Password);
 
 				employee.Password = hashedPassword;
 

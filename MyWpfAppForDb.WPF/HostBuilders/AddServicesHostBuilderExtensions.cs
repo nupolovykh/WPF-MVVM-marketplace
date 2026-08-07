@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNet.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MyWpfAppForDb.Domain.Services.AccountService;
@@ -16,7 +16,7 @@ namespace MyWpfAppForDb.WPF.HostBuilders
 		{
 			host.ConfigureServices(services =>
 			{
-				services.AddSingleton<IPasswordHasher, PasswordHasher>();
+				services.AddSingleton<IPasswordHasher<Employee>, PasswordHasher<Employee>>();
 				services.AddSingleton<IAuthenticationService, AuthenticationService>();
 				services.AddSingleton<IDataService<Employee>, AccountDataService>();
 				services.AddSingleton<IAccountService, AccountDataService>();
